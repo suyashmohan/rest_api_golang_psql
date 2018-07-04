@@ -30,12 +30,16 @@ type NoteRepository struct{}
 
 // New - Create new Note in DB
 func (nr *NoteRepository) New(text string) *Note {
-	connStr := "user=mypguser dbname=mytestdb password=mypassword sslmode=disable"
+	connStr := "user=mypguser dbname=mydb password=password sslmode=disable"
 	db, _ := sql.Open("postgres", connStr)
 
 	dbNote := Note{}
 	row := db.QueryRow("INSERT INTO notes(text, createdOn, updatedOn) VALUES($1::TEXT, now()::TIMESTAMP, now()::TIMESTAMP) RETURNING *", text)
-	row.Scan(&dbNote.ID, &dbNote.Text, &dbNote.CreatedOn, &dbNote.UpdatedOn)
+	err := row.Scan(&dbNote.ID, &dbNote.Text, &dbNote.CreatedOn, &dbNote.UpdatedOn)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return &dbNote
 }
