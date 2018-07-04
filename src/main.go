@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
+	_ "github.com/lib/pq"
 )
 
 // Note - Holds the Note Data
@@ -18,16 +20,24 @@ type Note struct {
 	UpdatedOn time.Time `json:"updatedOn"`
 }
 
-// NewNote - Creates and returns a new Note
-func NewNote(text string) *Note {
-	note := Note{
-		ID:        1,
-		Text:      text,
-		CreatedOn: time.Now(),
-		UpdatedOn: time.Now(),
-	}
+// NewNoteRequest - Request Body for New Note
+type NewNoteRequest struct {
+	Text string `json:"text"`
+}
 
-	return &note
+// NoteRepository - Repository for Database Layer of Notes
+type NoteRepository struct{}
+
+// New - Create new Note in DB
+func (nr *NoteRepository) New(text string) *Note {
+	connStr := "user=mypguser dbname=mytestdb password=mypassword sslmode=disable"
+	db, _ := sql.Open("postgres", connStr)
+
+	dbNote := Note{}
+	row := db.QueryRow("INSERT INTO notes(text, createdOn, updatedOn) VALUES($1::TEXT, now()::TIMESTAMP, now()::TIMESTAMP) RETURNING *", text)
+	row.Scan(&dbNote.ID, &dbNote.Text, &dbNote.CreatedOn, &dbNote.UpdatedOn)
+
+	return &dbNote
 }
 
 // Update - Update the text for Note and time
@@ -41,9 +51,11 @@ func indexRoute(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func createNote(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	r.ParseForm()
-	noteText := r.PostForm.Get("note")
-	note := NewNote(noteText)
+	noteReq := NewNoteRequest{}
+	json.NewDecoder(r.Body).Decode(&noteReq)
+
+	noteRepo := NoteRepository{}
+	note := noteRepo.New(noteReq.Text)
 	json, _ := json.Marshal(note)
 
 	w.Header().Set("Content-Type", "application/json")
