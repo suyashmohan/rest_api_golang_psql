@@ -5,9 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"./controller"
-	"./repository"
-
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
 )
@@ -24,21 +21,6 @@ func connectToDB() *sql.DB {
 	return sqlDB
 }
 
-func setupIndexRoutes(router *httprouter.Router) {
-	indexController := controller.IndexController{}
-	router.GET("/", indexController.IndexRoute)
-}
-
-func setupNoteRoutes(db *sql.DB, router *httprouter.Router) {
-	noteRepo := repository.NoteRepository{DB: db}
-	noteContoller := controller.NoteController{NoteRepo: &noteRepo}
-
-	router.GET("/note/:id", noteContoller.GetNote)
-	router.PUT("/note/:id", noteContoller.UpdateNote)
-	router.DELETE("/note/:id", noteContoller.DeleteNote)
-	router.POST("/note", noteContoller.CreateNote)
-}
-
 func main() {
 	router := httprouter.New()
 	db := connectToDB()
@@ -46,8 +28,8 @@ func main() {
 		log.Fatal("Unable to connect to DB")
 	}
 
-	setupIndexRoutes(router)
-	setupNoteRoutes(db, router)
+	SetupIndexRoutes(router)
+	SetupNoteRoutes(db, router)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
