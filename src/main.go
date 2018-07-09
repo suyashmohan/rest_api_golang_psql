@@ -55,10 +55,41 @@ func (nr *NoteRepository) New(text string) *Note {
 	return &dbNote
 }
 
-// Update - Update the text for Note and time
-func (n *Note) Update(text string) {
-	n.Text = text
-	n.UpdatedOn = time.Now()
+// Get - Return a Note based on ID
+func (nr *NoteRepository) Get(id string) *Note {
+	dbNote := Note{}
+	row := db.QueryRow("SELECT * FROM notes WHERE id = $1 LIMIT 1", id)
+	err := row.Scan(&dbNote.ID, &dbNote.Text, &dbNote.CreatedOn, &dbNote.UpdatedOn)
+
+	if err == nil {
+		return &dbNote
+	}
+
+	return nil
+}
+
+// Update - Update the text for Note
+func (nr *NoteRepository) Update(id, text string) *Note {
+	dbNote := Note{}
+	row := db.QueryRow("UPDATE notes SET text=$2, updatedon=now()::TIMESTAMP WHERE id=$1 RETURNING *", id, text)
+	err := row.Scan(&dbNote.ID, &dbNote.Text, &dbNote.CreatedOn, &dbNote.UpdatedOn)
+	if err == nil {
+		return &dbNote
+	}
+
+	return nil
+}
+
+// Delete - Delete a record from DB
+func (nr *NoteRepository) Delete(id string) *Note {
+	dbNote := Note{}
+	row := db.QueryRow("DELETE FROM notes WHERE id=$1 RETURNING *", id)
+	err := row.Scan(&dbNote.ID, &dbNote.Text, &dbNote.CreatedOn, &dbNote.UpdatedOn)
+	if err == nil {
+		return &dbNote
+	}
+
+	return nil
 }
 
 func indexRoute(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -80,17 +111,49 @@ func createNote(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func getNote(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
-	fmt.Fprintf(w, "Get Note %s", id)
+
+	noteRepo := NoteRepository{}
+	note := noteRepo.Get(id)
+	if note != nil {
+		json, _ := json.Marshal(note)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		fmt.Fprintf(w, "%s", json)
+	} else {
+		w.WriteHeader(404)
+	}
 }
 
 func updateNote(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
-	fmt.Fprintf(w, "Update Note %s", id)
+	noteReq := NewNoteRequest{}
+	json.NewDecoder(r.Body).Decode(&noteReq)
+
+	noteRepo := NoteRepository{}
+	note := noteRepo.Update(id, noteReq.Text)
+	if note != nil {
+		json, _ := json.Marshal(note)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		fmt.Fprintf(w, "%s", json)
+	} else {
+		w.WriteHeader(404)
+	}
 }
 
 func deleteNote(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
-	fmt.Fprintf(w, "Delete Note %s", id)
+
+	noteRepo := NoteRepository{}
+	note := noteRepo.Delete(id)
+	if note != nil {
+		json, _ := json.Marshal(note)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		fmt.Fprintf(w, "%s", json)
+	} else {
+		w.WriteHeader(404)
+	}
 }
 
 func main() {
