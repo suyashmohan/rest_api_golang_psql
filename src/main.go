@@ -12,6 +12,14 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const (
+	dbUSER = "mypguser"
+	dbPASS = "password"
+	dbNAME = "mydb"
+)
+
+var db *sql.DB
+
 // Note - Holds the Note Data
 type Note struct {
 	ID        int64     `json:"id"`
@@ -28,11 +36,14 @@ type NewNoteRequest struct {
 // NoteRepository - Repository for Database Layer of Notes
 type NoteRepository struct{}
 
+func connectToDB() *sql.DB {
+	connStr := "user=" + dbUSER + " dbname=" + dbNAME + " password=" + dbPASS + " sslmode=disable"
+	sqlDB, _ := sql.Open("postgres", connStr)
+	return sqlDB
+}
+
 // New - Create new Note in DB
 func (nr *NoteRepository) New(text string) *Note {
-	connStr := "user=mypguser dbname=mydb password=password sslmode=disable"
-	db, _ := sql.Open("postgres", connStr)
-
 	dbNote := Note{}
 	row := db.QueryRow("INSERT INTO notes(text, createdOn, updatedOn) VALUES($1::TEXT, now()::TIMESTAMP, now()::TIMESTAMP) RETURNING *", text)
 	err := row.Scan(&dbNote.ID, &dbNote.Text, &dbNote.CreatedOn, &dbNote.UpdatedOn)
@@ -51,7 +62,7 @@ func (n *Note) Update(text string) {
 }
 
 func indexRoute(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "Welcome")
+	fmt.Fprintf(w, "Hello! World")
 }
 
 func createNote(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -84,6 +95,10 @@ func deleteNote(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 func main() {
 	router := httprouter.New()
+	db = connectToDB()
+	if db == nil {
+		log.Fatal("Unable to connect to DB")
+	}
 
 	router.GET("/", indexRoute)
 
