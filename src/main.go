@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -17,19 +18,21 @@ const (
 
 func connectToDB() *sql.DB {
 	connStr := "user=" + dbUSER + " dbname=" + dbNAME + " password=" + dbPASS + " sslmode=disable"
-	sqlDB, _ := sql.Open("postgres", connStr)
+	sqlDB, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal("Unable to connect to Database")
+	}
+
 	return sqlDB
 }
 
 func main() {
 	router := httprouter.New()
 	db := connectToDB()
-	if db == nil {
-		log.Fatal("Unable to connect to DB")
-	}
 
 	SetupIndexRoutes(router)
 	SetupNoteRoutes(db, router)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	fmt.Println("Starting Server at : 8080")
+	http.ListenAndServe(":8080", router)
 }
