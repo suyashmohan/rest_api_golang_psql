@@ -2,11 +2,12 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strings"
 
 	"../repository"
 	"./request"
+	"./response"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -21,12 +22,12 @@ func (nc *NoteController) CreateNote(w http.ResponseWriter, r *http.Request, _ h
 	noteReq := request.NewNoteRequest{}
 	json.NewDecoder(r.Body).Decode(&noteReq)
 
-	note := nc.NoteRepo.New(noteReq.Text)
-	json, _ := json.Marshal(note)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	fmt.Fprintf(w, "%s", json)
+	if len(strings.TrimSpace(noteReq.Text)) == 0 {
+		response.BadRequest("Note is empty", w)
+	} else {
+		note := nc.NoteRepo.New(noteReq.Text)
+		response.Success(note, w)
+	}
 }
 
 // GetNote - Get a note based on ID
@@ -35,29 +36,24 @@ func (nc *NoteController) GetNote(w http.ResponseWriter, r *http.Request, ps htt
 
 	note := nc.NoteRepo.Get(id)
 	if note != nil {
-		json, _ := json.Marshal(note)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		fmt.Fprintf(w, "%s", json)
+		response.Success(note, w)
 	} else {
-		w.WriteHeader(404)
+		response.BadRequest("Note not found", w)
 	}
 }
 
 // UpdateNote - Update a note using ID
 func (nc *NoteController) UpdateNote(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
+
 	noteReq := request.NewNoteRequest{}
 	json.NewDecoder(r.Body).Decode(&noteReq)
 
 	note := nc.NoteRepo.Update(id, noteReq.Text)
 	if note != nil {
-		json, _ := json.Marshal(note)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		fmt.Fprintf(w, "%s", json)
+		response.Success(note, w)
 	} else {
-		w.WriteHeader(404)
+		response.BadRequest("Note not found", w)
 	}
 }
 
@@ -67,11 +63,8 @@ func (nc *NoteController) DeleteNote(w http.ResponseWriter, r *http.Request, ps 
 
 	note := nc.NoteRepo.Delete(id)
 	if note != nil {
-		json, _ := json.Marshal(note)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		fmt.Fprintf(w, "%s", json)
+		response.Success(note, w)
 	} else {
-		w.WriteHeader(404)
+		response.BadRequest("Note not found", w)
 	}
 }
