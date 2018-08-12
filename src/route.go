@@ -32,6 +32,7 @@ func setupUserRoutes(db *sql.DB, router *httprouter.Router) {
 	userController := controller.UserController{UserRepo: &userRepo}
 
 	router.POST("/user", userController.CreateUser)
+	router.POST("/user/verify", userController.VerifyUser)
 }
 
 // SetupRoutes - Set up all the Routes

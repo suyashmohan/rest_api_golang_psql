@@ -39,3 +39,9 @@ func (ur *UserRepository) New(username, password string) *entity.User {
 	dbUser := ur.runSQL("INSERT INTO users(username, password, createdOn, updatedOn) VALUES($1::TEXT, $2::TEXT, now()::TIMESTAMP, now()::TIMESTAMP) RETURNING *", username, password)
 	return dbUser
 }
+
+// Get - Get a User
+func (ur *UserRepository) Get(username string) *entity.User {
+	dbUser := ur.runSQL("SELECT * FROM users WHERE username = $1::TEXT LIMIT 1", username)
+	return dbUser
+}

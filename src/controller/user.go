@@ -33,11 +33,32 @@ func (uc *UserController) CreateUser(w http.ResponseWriter, r *http.Request, _ h
 		response.InternalServerError("Something wrong went with Password", w)
 		return
 	}
+
 	user := uc.UserRepo.New(userReq.Username, string(hash))
 
 	if user != nil {
 		response.Success(user, w)
 	} else {
 		response.BadRequest("Unable to create a new User with the given username/password", w)
+	}
+}
+
+// VerifyUser - Verfiy a valid User
+func (uc *UserController) VerifyUser(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	userReq := request.NewUserRequest{}
+	json.NewDecoder(r.Body).Decode(&userReq)
+
+	user := uc.UserRepo.Get(userReq.Username)
+
+	if user == nil {
+		response.BadRequest("Unable to verify the given username/password", w)
+		return
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userReq.Password))
+	if err != nil {
+		response.BadRequest("Unable to verify the given username/password", w)
+	} else {
+		response.Success(user, w)
 	}
 }
