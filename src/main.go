@@ -30,8 +30,7 @@ func main() {
 	router := httprouter.New()
 	db := connectToDB()
 
-	SetupIndexRoutes(router)
-	SetupNoteRoutes(db, router)
+	SetupRoutes(db, router)
 
 	fmt.Println("Starting Server at : 8080")
 	http.ListenAndServe(":8080", router)

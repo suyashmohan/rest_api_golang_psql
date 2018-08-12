@@ -10,13 +10,13 @@ import (
 )
 
 // SetupIndexRoutes - Routes for /
-func SetupIndexRoutes(router *httprouter.Router) {
+func setupIndexRoutes(router *httprouter.Router) {
 	indexController := controller.IndexController{}
 	router.GET("/", indexController.IndexRoute)
 }
 
 // SetupNoteRoutes - Routes for /notes
-func SetupNoteRoutes(db *sql.DB, router *httprouter.Router) {
+func setupNoteRoutes(db *sql.DB, router *httprouter.Router) {
 	noteRepo := repository.NoteRepository{DB: db}
 	noteContoller := controller.NoteController{NoteRepo: &noteRepo}
 
@@ -24,4 +24,19 @@ func SetupNoteRoutes(db *sql.DB, router *httprouter.Router) {
 	router.PUT("/note/:id", noteContoller.UpdateNote)
 	router.DELETE("/note/:id", noteContoller.DeleteNote)
 	router.POST("/note", noteContoller.CreateNote)
+}
+
+// SetupUserRoutes - Routes for /user
+func setupUserRoutes(db *sql.DB, router *httprouter.Router) {
+	userRepo := repository.UserRepository{DB: db}
+	userController := controller.UserController{UserRepo: &userRepo}
+
+	router.POST("/user", userController.CreateUser)
+}
+
+// SetupRoutes - Set up all the Routes
+func SetupRoutes(db *sql.DB, router *httprouter.Router) {
+	setupIndexRoutes(router)
+	setupNoteRoutes(db, router)
+	setupUserRoutes(db, router)
 }
