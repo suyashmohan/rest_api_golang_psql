@@ -3,6 +3,6 @@
 
 - [x] Put together minimalist code to run REST API to save Notes
 - [x] Restructure code
-- [ ] Add User Register and Login facility
+- [x] Add User Register and Login facility
 - [ ] Split out Postgres SQL functions
 - [ ] Restructure code if required
