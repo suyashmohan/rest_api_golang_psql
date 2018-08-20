@@ -33,5 +33,6 @@ func main() {
 	SetupRoutes(db, router)
 
 	fmt.Println("Starting Server at : 8080")
-	http.ListenAndServe(":8080", router)
+	err := http.ListenAndServe(":8080", router)
+	fmt.Println(err.Error())
 }
