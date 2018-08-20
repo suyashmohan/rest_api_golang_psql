@@ -5,6 +5,7 @@ import (
 
 	"./controller"
 	"./repository"
+	"./service"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -20,10 +21,14 @@ func setupNoteRoutes(db *sql.DB, router *httprouter.Router) {
 	noteRepo := repository.NoteRepository{DB: db}
 	noteContoller := controller.NoteController{NoteRepo: &noteRepo}
 
-	router.GET("/note/:id", noteContoller.GetNote)
-	router.PUT("/note/:id", noteContoller.UpdateNote)
-	router.DELETE("/note/:id", noteContoller.DeleteNote)
-	router.POST("/note", noteContoller.CreateNote)
+	authReq := func(h httprouter.Handle) httprouter.Handle {
+		return service.Auth(h, noteContoller.AuthError)
+	}
+
+	router.GET("/note/:id", authReq(noteContoller.GetNote))
+	router.PUT("/note/:id", authReq(noteContoller.UpdateNote))
+	router.DELETE("/note/:id", authReq(noteContoller.DeleteNote))
+	router.POST("/note", authReq(noteContoller.CreateNote))
 }
 
 // SetupUserRoutes - Routes for /user

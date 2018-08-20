@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"../repository"
+	"../service"
 	"./request"
 	"./response"
 
@@ -59,6 +60,8 @@ func (uc *UserController) VerifyUser(w http.ResponseWriter, r *http.Request, _ h
 	if err != nil {
 		response.BadRequest("Unable to verify the given username/password", w)
 	} else {
-		response.Success(user, w)
+		body := make(map[string]string)
+		body["token"], _ = service.JWT(user.ID)
+		response.Success(body, w)
 	}
 }
