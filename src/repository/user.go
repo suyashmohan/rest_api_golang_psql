@@ -14,7 +14,7 @@ type UserRepository struct {
 
 // ----- Private Methods -----
 
-// Throw Fatal Error
+// Log Error
 func (ur *UserRepository) logErr(err error) {
 	log.Println("[User Repository] ", err)
 }
