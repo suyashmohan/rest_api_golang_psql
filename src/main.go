@@ -10,15 +10,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbHOST = "db"
-	dbUSER = "mypguser"
-	dbPASS = "password"
-	dbNAME = "mydb"
-)
-
-func connectToDB() *sql.DB {
-	connStr := "host=" + dbHOST + " user=" + dbUSER + " dbname=" + dbNAME + " password=" + dbPASS + " sslmode=disable"
+func connectToDB(c Config) *sql.DB {
+	connStr := c.DBString()
 	sqlDB, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Unable to connect to Database")
@@ -28,12 +21,15 @@ func connectToDB() *sql.DB {
 }
 
 func main() {
+	config := Config{}
+	config.Read("config.yml")
+
 	router := httprouter.New()
-	db := connectToDB()
+	db := connectToDB(config)
 
 	SetupRoutes(db, router)
 
-	fmt.Println("Starting Server at : 8080")
-	err := http.ListenAndServe(":8080", router)
+	fmt.Println("Starting Server at : " + config.App.Port)
+	err := http.ListenAndServe(":"+config.App.Port, router)
 	fmt.Println(err.Error())
 }
