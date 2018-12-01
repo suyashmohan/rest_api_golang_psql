@@ -9,14 +9,10 @@ The APIs lets you create and save `Notes`.
 * https://github.com/lib/pq
 * https://golang.org/x/crypto/bcrypt
 * https://github.com/dgrijalva/jwt-go
+* https://github.com/go-yaml/yaml
 
 # How To Run
-The project has a basic Makefile to help out in running the project
-
-* `make dep` should install the dependencies in local vendor folder
-* `make run` should start the server
-
-Postgresql can be setup using docker-compose
+The project uses Docker Compose
 
 * `docker-compose up`
 
