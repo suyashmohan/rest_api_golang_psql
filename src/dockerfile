@@ -1,0 +1,14 @@
+FROM golang:1.11-alpine
+
+RUN apk add git
+
+WORKDIR /go/src/app
+COPY . .
+RUN go get github.com/julienschmidt/httprouter && \
+    go get github.com/lib/pq && \
+    go get golang.org/x/crypto/bcrypt && \
+    go get github.com/dgrijalva/jwt-go && \
+    go get github.com/davecgh/go-spew/spew
+RUN go build -o app *.go 
+EXPOSE 8080
+CMD ["./app"]

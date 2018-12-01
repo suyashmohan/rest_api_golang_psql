@@ -11,13 +11,14 @@ import (
 )
 
 const (
+	dbHOST = "db"
 	dbUSER = "mypguser"
 	dbPASS = "password"
 	dbNAME = "mydb"
 )
 
 func connectToDB() *sql.DB {
-	connStr := "user=" + dbUSER + " dbname=" + dbNAME + " password=" + dbPASS + " sslmode=disable"
+	connStr := "host=" + dbHOST + " user=" + dbUSER + " dbname=" + dbNAME + " password=" + dbPASS + " sslmode=disable"
 	sqlDB, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Unable to connect to Database")
