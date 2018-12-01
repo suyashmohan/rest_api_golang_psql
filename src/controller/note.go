@@ -73,5 +73,5 @@ func (nc *NoteController) DeleteNote(w http.ResponseWriter, r *http.Request, ps 
 
 // AuthError - Send Error for Auth
 func (nc *NoteController) AuthError(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	response.Unauthorized("The request requires authorization", w)
+	response.Unauthorized("Authorization Failed. Either token is not passed or is invalid/expired token", w)
 }

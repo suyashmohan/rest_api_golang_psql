@@ -1,45 +1,60 @@
 package service
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/gbrlsnchs/jwt"
-
+	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 )
 
 const superSecret = "secretABCD1234"
 
-func getSigner() jwt.Signer {
-	return jwt.HS256(superSecret)
+// AuthJWTClaims - Our Custom Claims for Auth
+type AuthJWTClaims struct {
+	UserID string `json:"userid"`
+	jwt.StandardClaims
+}
+
+// Valid - Check for Validation for JWT Token
+func (c AuthJWTClaims) Valid() error {
+	if err := c.StandardClaims.Valid(); err != nil {
+		return err
+	}
+
+	if c.UserID == "" {
+		return errors.New("Must provide a user ID")
+	}
+
+	return nil
 }
 
 // Auth - Check for Authorization
 func Auth(h httprouter.Handle, errorHandle httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		jwtReq, err := jwt.FromRequest(r)
-		if err != nil {
-			errorHandle(w, r, ps)
-			return
-		}
-		if err := jwtReq.Verify(getSigner()); err != nil {
-			errorHandle(w, r, ps)
-			return
-		}
-		userID := jwtReq.Public()["userid"]
-		if userID, ok := userID.(float64); ok {
+		reqToken := r.Header.Get("Authorization")
+		splitToken := strings.Split(reqToken, "Bearer")
+		reqToken = strings.TrimSpace(splitToken[1])
+
+		token, _ := jwt.ParseWithClaims(reqToken, &AuthJWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+			return []byte(superSecret), nil
+		})
+
+		if claims, ok := token.Claims.(*AuthJWTClaims); ok && token.Valid {
 			// Extend Params by adding user id
 			i := len(ps)
 			psNew := make([]httprouter.Param, i+1)
 			copy(psNew, ps)
 			psNew[i].Key = "userid"
-			psNew[i].Value = strconv.FormatInt(int64(userID), 10) // JWT Returns number as float64 but it's integer and Param needs it as string :(
+			psNew[i].Value = claims.UserID
 
 			h(w, r, psNew)
+
 		} else {
-			h(w, r, ps)
+			errorHandle(w, r, ps)
 		}
 	}
 }
@@ -47,8 +62,12 @@ func Auth(h httprouter.Handle, errorHandle httprouter.Handle) httprouter.Handle 
 // JWT - Generate a JWT Token
 func JWT(userid int64) (string, error) {
 	expiry := time.Now().Add(24 * time.Hour) // Expire after 1 day
-	payload := make(map[string]interface{})
-	payload["userid"] = userid
-
-	return jwt.Sign(getSigner(), &jwt.Options{ExpirationTime: expiry, Public: payload})
+	claims := AuthJWTClaims{
+		strconv.FormatInt(userid, 10),
+		jwt.StandardClaims{
+			ExpiresAt: expiry.Unix(),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(superSecret))
 }

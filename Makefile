@@ -11,7 +11,8 @@ dep:
 	go get github.com/julienschmidt/httprouter
 	go get github.com/lib/pq
 	go get golang.org/x/crypto/bcrypt
-	go get github.com/gbrlsnchs/jwt
+	go get github.com/dgrijalva/jwt-go
+	go get github.com/davecgh/go-spew/spew
 
 build:
 	go build -o ${BINNAME} src/*.go
