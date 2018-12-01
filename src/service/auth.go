@@ -37,6 +37,10 @@ func Auth(h httprouter.Handle, errorHandle httprouter.Handle) httprouter.Handle 
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		reqToken := r.Header.Get("Authorization")
 		splitToken := strings.Split(reqToken, "Bearer")
+		if len(splitToken) < 2 {
+			errorHandle(w, r, ps)
+			return
+		}
 		reqToken = strings.TrimSpace(splitToken[1])
 
 		token, _ := jwt.ParseWithClaims(reqToken, &AuthJWTClaims{}, func(token *jwt.Token) (interface{}, error) {
