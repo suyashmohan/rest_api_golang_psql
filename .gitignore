@@ -16,3 +16,6 @@ vendor
 
 # VS Code files
 .vscode
+
+# Data Files
+pgdata

@@ -1,0 +1,19 @@
+version: '3.1'
+
+services:
+  db:
+    image: postgres:11.1-alpine
+    environment:
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_USER: "mypguser"
+      POSTGRES_DB: "mydb"
+    volumes:
+      - "./pgdata:/var/lib/postgresql/data/"
+      - "./postgres:/docker-entrypoint-initdb.d/"
+    ports:
+      - "5432:5432"
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
