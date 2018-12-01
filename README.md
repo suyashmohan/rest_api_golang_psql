@@ -8,7 +8,7 @@ The APIs lets you create and save `Notes`.
 * https://github.com/julienschmidt/httprouter
 * https://github.com/lib/pq
 * https://golang.org/x/crypto/bcrypt
-* https://github.com/gbrlsnchs/jwt
+* https://github.com/dgrijalva/jwt-go
 
 # How To Run
 The project has a basic Makefile to help out in running the project
@@ -16,11 +16,15 @@ The project has a basic Makefile to help out in running the project
 * `make dep` should install the dependencies in local vendor folder
 * `make run` should start the server
 
+Postgresql can be setup using docker-compose
+
+* `docker-compose up`
+
 # APIs
 
 ### Note
 
-Needs Auth Token in Headers.
+Needs Auth Bearer Token in Headers.
 
 * POST("/note") - Create Note
 * GET("/note/:id") - Get a Note
