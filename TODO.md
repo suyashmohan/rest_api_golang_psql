@@ -6,6 +6,7 @@
 - [x] Add User Register and Login facility
 - [x] Authorization
 - [x] JWT Integration
+- [ ] Separate Config File
 - [ ] Test Cases
 - [ ] Split out Postgres SQL into functions
 - [ ] Restructure code if required
